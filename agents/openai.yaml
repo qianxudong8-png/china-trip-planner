@@ -1,0 +1,8 @@
+interface:
+  display_name: "中国旅行攻略自动规划"
+  short_description: "三平台调研、路线排程、预算校验与多格式交付"
+  brand_color: "#B55233"
+  default_prompt: "使用 $china-trip-planner 根据我的目的地、日期、人数、预算和偏好，调研并生成可直接执行的完整旅行方案。"
+policy:
+  allow_implicit_invocation: true
+  
