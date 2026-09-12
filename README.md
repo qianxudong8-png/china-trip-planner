@@ -7,7 +7,7 @@
 克隆仓库后，将整个目录复制到 Codex 的个人技能目录：
 
 ```bash
-git clone https://github.com/你的用户名/china-trip-planner.git
+git clone https://github.com/qianxudong8-png/china-trip-planner.git
 cp -R china-trip-planner ~/.codex/skills/china-trip-planner
 ```
 
@@ -69,4 +69,3 @@ python3 scripts/audit_plan.py 新疆-2027夏季/plan.json
 - 长途路线明确休息、补给和夜间驾驶限制；
 - 改路线后重算所有受影响费用；
 - PPT 中 ImageGen 图片仅作氛围装饰，不能冒充真实现场。
-  
