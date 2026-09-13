@@ -72,7 +72,8 @@ Each POI should contain:
     "latest_end": "22:00",
     "max_steps_per_day": 18000,
     "max_drive_min_per_day": null,
-    "rest_interval_min": 120
+    "rest_interval_min": 120,
+    "min_rest_min": 20
   },
   "fixed_costs_per_person": {"intercity": 0, "lodging": 0, "vehicle": 0, "other": 0},
   "days": [
@@ -105,4 +106,14 @@ Each POI should contain:
 ```
 
 Count trip-wide costs only in `fixed_costs_per_person`; count meals, tickets, local transit, fuel, tolls, and day-specific costs in events. Event times use local `HH:MM`. Include each transit and rest leg so the audit sees the true day.
+
+## Audit input and rest rules
+
+`trip.days` and `trip.people` must be positive integers. `days` and each day's `events` must be non-empty lists. Day numbers must be unique and within the declared trip length. The initializer produces an unfinished draft: add actual events before auditing it.
+
+Times must be exactly `HH:MM`, from `00:00` to `23:59`; for example, `10:99`, `24:00`, and `9:00` are invalid. Split overnight events across days. Costs and driving durations must be finite non-negative numbers, and `drive_min` cannot exceed its transit event's duration.
+
+Continuous driving resets only for a `rest` or `meal` event with at least `trip.min_rest_min` non-overlapping minutes (default 20). Short stops, sightseeing, hotel events, and unrecorded gaps do not automatically count as recovery. Add an explicit rest event when a longer stop includes a real break. The 20-minute default is a configurable planning heuristic, not a legal or medical guarantee.
+
+CLI exit codes: `0` for no warnings, `1` for warnings with `--strict`, `2` for invalid input. Warnings without `--strict` are still reported with exit code `0`.
   
