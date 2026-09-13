@@ -59,6 +59,16 @@ python3 scripts/init_trip.py 新疆-2027夏季 --destination 新疆 --days 12 --
 python3 scripts/audit_plan.py 新疆-2027夏季/plan.json
 ```
 
+初始化生成的是草稿，需填入每日事件后才能审计。时间必须为有效的 `HH:MM`；空计划、空白行程及非法时间会返回输入错误。只有明确标为 `rest` 或 `meal`、且不重叠时长达到 `min_rest_min`（默认 20 分钟）的事件才会重置连续驾驶计时。该阈值可调整，属于规划规则。
+
+回归测试（Python 标准库，无需额外依赖）：
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+审计命令添加 `--strict` 后，发现行程告警时退出码为 `1`；输入错误退出码为 `2`，正常通过为 `0`。详细数据要求见 [数据模型](references/data-model.md)。
+
 ## 质量底线
 
 - 小红书只负责发现与真实体验线索；
