@@ -5,15 +5,84 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import re
 from pathlib import Path
 
 
 def minute(value: str) -> int:
-    hour, minute_value = value.split(":", 1)
-    result = int(hour) * 60 + int(minute_value)
-    if result < 0 or result >= 24 * 60:
+    if not isinstance(value, str) or not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", value):
         raise ValueError(f"invalid time: {value}")
-    return result
+    hour, minute_value = value.split(":")
+    return int(hour) * 60 + int(minute_value)
+
+
+def positive_integer(value: object, field: str) -> None:
+    if type(value) is not int or value <= 0:
+        raise ValueError(f"{field} must be a positive integer")
+
+
+def nonnegative_number(value: object, field: str) -> None:
+    if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+        raise ValueError(f"{field} must be a finite non-negative number")
+
+
+def validate_plan(plan: object) -> None:
+    if not isinstance(plan, dict):
+        raise ValueError("plan must be an object")
+    trip = plan.get("trip")
+    if not isinstance(trip, dict):
+        raise ValueError("trip must be an object")
+    for field in ("days", "people"):
+        positive_integer(trip.get(field), f"trip.{field}")
+    for field in ("rest_interval_min", "min_rest_min"):
+        if field in trip:
+            positive_integer(trip[field], f"trip.{field}")
+    for field in ("budget_per_person", "max_steps_per_day", "max_drive_min_per_day"):
+        if trip.get(field) is not None:
+            nonnegative_number(trip[field], f"trip.{field}")
+    if minute(trip.get("earliest_start", "00:00")) >= minute(trip.get("latest_end", "23:59")):
+        raise ValueError("daily window must end after it starts; split overnight events across days")
+    fixed = plan.get("fixed_costs_per_person", {})
+    if not isinstance(fixed, dict):
+        raise ValueError("fixed_costs_per_person must be an object")
+    for field, value in fixed.items():
+        nonnegative_number(value, f"fixed_costs_per_person.{field}")
+    days = plan.get("days")
+    if not isinstance(days, list) or not days:
+        raise ValueError("days must be a non-empty list")
+    seen_days = set()
+    for day in days:
+        if not isinstance(day, dict):
+            raise ValueError("each day must be an object")
+        positive_integer(day.get("day"), "day.day")
+        if day["day"] in seen_days or day["day"] > trip["days"]:
+            raise ValueError("day numbers must be unique and within trip.days")
+        seen_days.add(day["day"])
+        regions = day.get("regions", [])
+        if not isinstance(regions, list) or any(not isinstance(r, str) for r in regions):
+            raise ValueError("regions must be a list of strings")
+        if not isinstance(day.get("meal_waiver", {}), dict):
+            raise ValueError("meal_waiver must be an object")
+        for field in ("estimated_steps", "estimated_drive_min"):
+            if day.get(field) is not None:
+                nonnegative_number(day[field], field)
+        events = day.get("events")
+        if not isinstance(events, list) or not events:
+            raise ValueError(f"day {day['day']} events must be a non-empty list; finish the draft before auditing")
+        for event in events:
+            if not isinstance(event, dict):
+                raise ValueError("each event must be an object")
+            start, end = minute(event.get("start")), minute(event.get("end"))
+            for field in ("open", "close", "latest_entry"):
+                if event.get(field) is not None:
+                    minute(event[field])
+            for field in ("cost_per_person", "drive_min"):
+                if field in event:
+                    nonnegative_number(event[field], field)
+            drive = event.get("drive_min", 0)
+            if drive and (event.get("kind") != "transit" or drive > end - start):
+                raise ValueError("drive_min must fit inside a transit event")
 
 
 def warn(items: list[dict], scope: str, issue: str) -> None:
@@ -21,6 +90,7 @@ def warn(items: list[dict], scope: str, issue: str) -> None:
 
 
 def audit(plan: dict) -> dict:
+    validate_plan(plan)
     trip = plan.get("trip", {})
     warnings: list[dict] = []
     total = sum(float(value or 0) for value in plan.get("fixed_costs_per_person", {}).values())
@@ -31,6 +101,7 @@ def audit(plan: dict) -> dict:
     max_steps = trip.get("max_steps_per_day")
     max_drive = trip.get("max_drive_min_per_day")
     rest_interval = int(trip.get("rest_interval_min") or 120)
+    min_rest = trip.get("min_rest_min", 20)
     earliest = minute(trip.get("earliest_start", "00:00"))
     latest = minute(trip.get("latest_end", "23:59"))
 
@@ -62,6 +133,8 @@ def audit(plan: dict) -> dict:
             end = minute(event["end"])
             name = event.get("name", "unnamed event")
             kind = event.get("kind")
+            # Only the non-overlapping portion of a named rest or meal counts.
+            available_rest = end - max(start, previous_end if previous_end is not None else start)
             total += float(event.get("cost_per_person") or 0)
 
             if end <= start:
@@ -98,7 +171,7 @@ def audit(plan: dict) -> dict:
                 drive_from_events += drive
                 if continuous_drive > rest_interval:
                     warn(warnings, label, f"continuous driving reaches {continuous_drive} minutes before a rest")
-            elif kind != "transit":
+            elif kind in ("rest", "meal") and available_rest >= min_rest:
                 continuous_drive = 0
 
         if declared_drive and abs(drive_from_events - declared_drive) > 15:
