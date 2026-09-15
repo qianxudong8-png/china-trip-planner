@@ -4,6 +4,8 @@
 
 State whether the quoted budget is per person or for the party and whether it includes intercity transport. If unclear, calculate both interpretations when the difference changes feasibility.
 
+Preserve unresolved scope as `null` in the input. Do not convert an earlier simulation assumption or conflicting old guide into user confirmation. Clearly label scenario totals and overruns; never raise the user's spending limit to make the arithmetic pass.
+
 Track intercity transport, vehicle rental or charter, fuel, tolls, parking, lodging, breakfast, lunch, dinner, snacks, drinks, tickets, local transit, taxis, entertainment, shopping, insurance, and contingency. Show daily totals, category totals, per-person total, party total, and remaining buffer.
 
 Use observed prices with retrieval dates when available. Mark future lodging, airfare, train, and rental rates as volatile. Do not replace missing prices with false precision; use a labeled range.
@@ -45,4 +47,6 @@ Check and repair:
 - volatile facts have refresh dates and unresolved facts say `【待确认】`.
 
 Run the script, then perform the geographic and freshness review manually.
+
+Report the scope of a partial-day test explicitly. A justified breakfast/dinner waiver for a midday sample cannot be copied into a full-day itinerary. A script pass establishes only the checks it implements; it does not verify quotes, source coverage, facilities, queue length, or overall trip readiness.
   

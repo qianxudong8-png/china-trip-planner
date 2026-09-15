@@ -35,6 +35,10 @@ Create an explicit switch when route viability depends on dates or conditions:
 
 State the decision date and what evidence triggers the switch.
 
+When a refreshed map materially increases distance or duration, invalidate the affected transfer and its dependent meals, lodging, reservations, and budget. Recompute with the fresh observation and current access evidence. If it exceeds daily or continuous-driving limits, block that transfer until a viable split or alternative is verified; do not silently retain the old shorter time. Preserve the MUST destination while marking any unresolved access or timing conflict.
+
+A nearby park is only a candidate rest point until usable access and needed facilities are checked. Proximity alone does not confirm toilets, seating, safe parking, or opening. Label unverified facilities and choose a verified fallback when the stop is essential.
+
 ## Daily rhythm
 
 Match the requested pace. A relaxed day needs recovery gaps, normal meals, and an early finish after a long transfer. Avoid stacking multiple similar attractions just because they are nearby. Two culturally distinct temples, museums, or landscapes can coexist when their roles and visit lengths are meaningfully different; otherwise select one and use the other as a backup.

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 
@@ -20,11 +21,13 @@ def main() -> int:
     parser.add_argument("--people", type=int, default=1)
     parser.add_argument("--budget-per-person", type=float, default=0)
     parser.add_argument("--origin", default="")
+    parser.add_argument("--intercity", choices=("unknown", "included", "excluded"), default="unknown",
+                        help="Whether the budget includes round-trip intercity transport (default: unknown)")
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
 
-    if args.days < 1 or args.people < 1 or args.budget_per_person < 0:
-        parser.error("days and people must be positive; budget cannot be negative")
+    if args.days < 1 or args.people < 1 or not math.isfinite(args.budget_per_person) or args.budget_per_person < 0:
+        parser.error("days and people must be positive; budget must be finite and non-negative")
 
     args.folder.mkdir(parents=True, exist_ok=True)
     targets = [args.folder / name for name in ("trip-input.json", "poi-ledger.json", "plan.json")]
@@ -39,7 +42,8 @@ def main() -> int:
         "nights": max(args.days - 1, 0),
         "people": args.people,
         "origin": args.origin,
-        "budget": {"amount": args.budget_per_person, "basis": "per_person", "intercity_included": True},
+        "budget": {"amount": args.budget_per_person, "basis": "per_person",
+                   "intercity_included": {"unknown": None, "included": True, "excluded": False}[args.intercity]},
         "pace": "normal",
         "daily_window": {"start": "09:00", "end": "22:00"},
         "transport": [],

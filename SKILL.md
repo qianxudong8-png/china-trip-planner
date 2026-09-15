@@ -70,6 +70,8 @@ python3 scripts/audit_plan.py <folder>/plan.json
 
 The script catches structural, timing, MUST verification, meal, rest, region, walking or driving, and budget issues. Human review must still assess route shape and current map accuracy.
 
+Keep script checks, live-source coverage, artifact validation, and full-trip readiness separate. A passing sample or PPT does not approve the complete itinerary. Unknown budget inclusion remains unknown until clarified; initializer defaults and test scenarios are not user confirmation.
+
 ## Call adjacent skills only when needed
 
 Read [references/skill-integration.md](references/skill-integration.md) before creating artifacts. Use Presentations for PPTX, ImageGen for clearly labeled illustrative art, Spreadsheets for dense POI or budget workbooks, Documents for DOCX, and PDF for a final PDF. The travel plan and evidence ledger remain the source of truth.

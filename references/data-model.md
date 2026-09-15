@@ -12,7 +12,7 @@ Persist three files so a later budget, date, destination, or preference change c
   "nights": 0,
   "people": 1,
   "origin": "",
-  "budget": {"amount": 0, "basis": "per_person", "intercity_included": true},
+  "budget": {"amount": 0, "basis": "per_person", "intercity_included": null},
   "pace": "normal",
   "daily_window": {"start": "09:00", "end": "22:00"},
   "transport": [],
@@ -26,6 +26,8 @@ Persist three files so a later budget, date, destination, or preference change c
 ```
 
 ## `poi-ledger.json`
+
+`budget.intercity_included` is `true`, `false`, or `null` (unresolved). The initializer defaults to `null`; pass `--intercity included` or `--intercity excluded` only when that scope is known. Keep scenario assumptions separate from confirmed user inputs. The audit script checks arithmetic, not whether the budget scope was agreed.
 
 Each POI should contain:
 
@@ -57,6 +59,8 @@ Each POI should contain:
 ```
 
 ## `plan.json`
+
+Keep per-leg evidence in the POI sources or a companion evidence ledger: exact endpoint POI IDs/entrances, mode, routing policy if available, requested departure time and timezone, retrieval time, observed distance/duration, source URL, status, and separate planning buffer. Preserve conflicting observations with the selected value and rationale. These are research fields for human review, not additional checks performed by `audit_plan.py`.
 
 `scripts/audit_plan.py` accepts:
 
